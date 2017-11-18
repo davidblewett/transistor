@@ -14,6 +14,9 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'Click>=6.0',
     # TODO: put package requirements here
+    'tornado',
+    'zope.interface',
+    'vmprof',
 ]
 
 setup_requirements = [
@@ -22,6 +25,7 @@ setup_requirements = [
 
 test_requirements = [
     # TODO: put package test requirements here
+    'mock',
 ]
 
 setup(
@@ -35,8 +39,15 @@ setup(
     packages=find_packages(include=['transistor']),
     entry_points={
         'console_scripts': [
+            'actuator=cs.eyrie.scripts.actuator:main',
             'transistor=transistor.cli:main'
         ]
+    },
+    extras_require={
+        #":python_version<'3.0'": ["futures", "monotonic"],
+        'AWS':  ["botocore"],
+        'Kafka':  ["confluent_kafka"],
+        'ZMQ':  ["pyzmq"],
     },
     include_package_data=True,
     install_requires=requirements,
@@ -49,14 +60,13 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-    test_suite='tests',
+    test_suite='tests.test_collector',
     tests_require=test_requirements,
     setup_requires=setup_requirements,
 )
