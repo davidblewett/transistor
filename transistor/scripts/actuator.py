@@ -3,16 +3,15 @@ import urlparse as urlparse_module
 from urlparse import parse_qs, urlparse, urlunparse
 
 import zmq
-from botocore.session import get_session
-from cs.eyrie import Vassal, ZMQChannel, script_main
-from cs.eyrie.interfaces import IKafka
-from cs.eyrie.transistor import (
+from transistor import (
     CLOSED, TRANSIENT_ERRORS,
     AsyncSQSClient,
     PailfileSource, RDKafkaSource, SQSSource, StreamSource, ZMQSource,
     Gate, Transistor,
     RDKafkaDrain, SQSDrain, StreamDrain, ZMQDrain,
 )
+from transistor.config import ZMQChannel, script_main
+from transistor.interfaces import IKafka
 try:
     from hadoop.io import SequenceFile
 except ImportError:
@@ -40,9 +39,8 @@ def _register_scheme(scheme):
         getattr(urlparse_module, method).append(scheme)
 
 
-class Actuator(Vassal):
+class Actuator(object):
     channels = dict(
-        Vassal.channels,
         input=ZMQChannel(
             # This is configured dynamically at runtime
             endpoint=None,
@@ -203,6 +201,7 @@ class Actuator(Vassal):
         )
 
     def _init_sqs_client(self, parsed_url, **kwargs):
+        from botocore.session import get_session
         params = parse_qs(parsed_url.query)
         session = get_session()
         queue_url = params.get('queue_url')

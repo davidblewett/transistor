@@ -39,7 +39,7 @@ setup(
     packages=find_packages(include=['transistor']),
     entry_points={
         'console_scripts': [
-            'actuator=cs.eyrie.scripts.actuator:main',
+            'actuator=transistor.scripts.actuator:main',
             'transistor=transistor.cli:main'
         ]
     },
