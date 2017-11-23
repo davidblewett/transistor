@@ -237,6 +237,6 @@ def script_main(script_class, cache_region, **script_kwargs):
         try:
             vassal.loop.start()
         except zmq.Again:
-            print 'Terminating with unsent messages'
+            print('Terminating with unsent messages')
 
     return vassal

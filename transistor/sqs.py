@@ -1,3 +1,4 @@
+from base64 import b64decode, b64encode
 from botocore.endpoint import convert_to_response_dict
 from collections import OrderedDict, namedtuple
 from datetime import datetime
@@ -297,7 +298,10 @@ class AsyncSQSClient(object):
         # The following reverse-engineerd from:
         # botocore.endpoint.Endpoint._get_response
         # Mimic requests' Response
-        http_response.content = http_response.body or u''
+        content = http_response.body or u''
+        if isinstance(content, bytes):
+            content = content.decode('utf8')
+        http_response.content = content.encode('utf8')
         http_response.status_code = http_response.code
         response_dict = convert_to_response_dict(http_response,
                                                  op_model)
@@ -401,7 +405,7 @@ class AsyncSQSClient(object):
             flags = msg_attr.get('flags', 0)
             body = msg['Body']
             if flags & BASE64_ENCODE:
-                body = body.decode('base64')
+                body = b64decode(body)
             if flags & ZLIB_COMPRESS:
                 body = decompress(body)
 
@@ -466,7 +470,11 @@ def build_send_message_request(message_body,
     if binary:
         flags |= ZLIB_COMPRESS
         flags |= BASE64_ENCODE
-        message_body = compress(message_body).encode('base64')
+        if not isinstance(message_body, bytes):
+            message_body = message_body.encode('utf8')
+        message_body = b64encode(compress(message_body))
+    if isinstance(message_body, bytes):
+        message_body = message_body.decode('utf8')
     MessageAttributes['flags'] = dict(
         DataType='Number',
         StringValue=str(flags),

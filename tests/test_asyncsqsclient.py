@@ -2,7 +2,8 @@ import logging
 import mock
 import os
 import unittest
-from StringIO import StringIO
+from io import StringIO
+from base64 import b64encode
 from botocore.parsers import ResponseParserError
 from botocore.session import get_session
 from copy import copy
@@ -23,7 +24,7 @@ from tornado.testing import (
     AsyncTestCase, AsyncHTTPClient,
     gen_test, main
 )
-from urlparse import parse_qs
+from urllib.parse import parse_qs
 from uuid import uuid4
 from zlib import compress
 
@@ -37,7 +38,8 @@ class AsyncSQSBase(AsyncTestCase):
         full_path = os.path.join(os.path.dirname(__file__),
                                  'data',
                                  filename)
-        return open(full_path).read()
+        with open(full_path) as buf:
+            return buf.read()
 
     def setUp(self):
         super(AsyncSQSBase, self).setUp()
@@ -108,13 +110,13 @@ class TestUtilityFunctions(unittest.TestCase):
         self.assertIsInstance(send_message_request, SendMessageRequestEntry)
 
     def test_send_builder_binary(self):
-        body = 'baz'
+        body = b'baz'
         send_message_request = build_send_message_request(body, binary=True)
         flags = send_message_request.MessageAttributes['flags']['StringValue']
         flags = int(flags)
         self.assertTrue(flags & BASE64_ENCODE)
         self.assertTrue(flags & ZLIB_COMPRESS)
-        message_body = compress(body).encode('base64')
+        message_body = b64encode(compress(body)).decode('utf8')
         self.assertEqual(send_message_request.MessageBody, message_body)
 
     def test_send_builder_nonbinary(self):
@@ -131,7 +133,7 @@ class TestUtilityFunctions(unittest.TestCase):
         # use the same type but just ensure that all fields are strings.
         self.assertIsInstance(serialized_req, SendMessageRequestEntry)
         for fname in serialized_req._fields:
-            self.assertIsInstance(getattr(serialized_req, fname), basestring)
+            self.assertIsInstance(getattr(serialized_req, fname), (str, bytes))
 
     def test_serializer_message_attributes(self):
         send_message_request = build_send_message_request('baz')
@@ -217,7 +219,7 @@ class TestReceiveMessage(AsyncSQSBase):
             # We only care that we passed the right parameter
             yield self.sqs_client.receive_message_batch(max_messages=1)
             request = fetch_mock.call_args[0][0]
-            params = parse_qs(request.body)
+            params = parse_qs(request.body.decode('utf8'))
             self.assertIn('MaxNumberOfMessages', params)
             self.assertEqual(params['MaxNumberOfMessages'][0], '1')
 
@@ -332,7 +334,7 @@ class TestSendMessage(AsyncSQSBase):
 
     def setUp(self):
         super(TestSendMessage, self).setUp()
-        self.send_message_request = build_send_message_request('baz')
+        self.send_message_request = build_send_message_request(u'baz')
 
     @gen_test
     def test_call(self):
