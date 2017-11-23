@@ -18,6 +18,7 @@ from copy import copy
 from datetime import timedelta
 from functools import partial
 from logging.config import dictConfig
+from pkg_resources import iter_entry_points
 from tempfile import gettempdir, mkstemp
 
 #from pyramid.path import DottedNameResolver
@@ -67,6 +68,19 @@ class BaseConfigParser(RawConfigParser):
 
     def optionxform(self, optionstr):
         return optionstr
+
+
+def load_transducer(transistor_name):
+    matching = [
+        entry_point
+        for entry_point in iter_entry_points('transistor.transducers',
+                                             transistor_name)
+    ]
+    if len(matching) == 0:
+        raise NameError(f'No transducers for: {transistor_name}')
+    elif len(matching) > 1:
+        raise RuntimeError(f'Too many matching transducers for {transistor_name}: {matching}')
+    return matching[0].resolve()
 
 
 def setup_logging(config_uri, incremental=False, **kwargs):

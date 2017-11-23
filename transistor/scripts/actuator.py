@@ -10,14 +10,13 @@ from transistor import (
     Gate, Transistor,
     RDKafkaDrain, SQSDrain, StreamDrain, ZMQDrain,
 )
-from transistor.config import ZMQChannel, script_main
+from transistor.config import ZMQChannel, load_transducer, script_main
 from transistor.interfaces import IKafka
 try:
     from hadoop.io import SequenceFile
 except ImportError:
     SequenceFile = None
-from pyramid.path import DottedNameResolver
-from pyramid.settings import asbool, aslist
+#from pyramid.settings import asbool, aslist
 from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
 
@@ -84,8 +83,8 @@ class Actuator(object):
         (
             ('--transducer',),
             dict(
-                help="Dotted-path to function to transform input messages to output",
-                default='cs.eyrie.transistor.get_last_element',
+                help="Named transistor.transducer entry point to transform input messages to output",
+                default='get_last_element',
             )
         ),
         (
@@ -283,8 +282,7 @@ class Actuator(object):
 
         # The gate "has" a drain;
         # a source "has" a gate
-        resolver = DottedNameResolver()
-        transducer = resolver.maybe_resolve(kwargs['transducer'])
+        transducer = load_transducer(kwargs['transducer'])
         if kwargs['transducer_config']:
             transducer = transducer(*kwargs['transducer_config'])
         kwargs['gate'] = Gate(

@@ -40,7 +40,10 @@ setup(
         'console_scripts': [
             'actuator=transistor.scripts.actuator:main',
             'transistor=transistor.cli:main'
-        ]
+        ],
+        'transistor.transducers': [
+            'get_last_element=transistor:get_last_element',
+        ],
     },
     extras_require={
         #":python_version<'3.0'": ["futures", "monotonic"],
