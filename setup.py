@@ -16,7 +16,6 @@ requirements = [
     # TODO: put package requirements here
     'tornado',
     'zope.interface',
-    'vmprof',
 ]
 
 setup_requirements = [
@@ -48,6 +47,7 @@ setup(
         'AWS':  ["botocore"],
         'Kafka':  ["confluent_kafka"],
         'ZMQ':  ["pyzmq"],
+        'Profile': ['vmprof'],
     },
     include_package_data=True,
     install_requires=requirements,
