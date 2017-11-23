@@ -31,12 +31,6 @@ from zmq.eventloop import ioloop
 
 INITIAL_TIMEOUT = timedelta(milliseconds=10)
 MAX_TIMEOUT = timedelta(seconds=45)
-LOGGING_PORT = 16385
-LOGGING_ENDPOINT = 'tcp://127.0.0.1:{}'.format(LOGGING_PORT)
-ROUTER_OUTBOUND = 'ipc:///tmp/kafka_consume.ipc'
-ROUTER_MONITOR = 'ipc:///tmp/kafka_monitor.ipc'
-
-
 SOCKET_TYPES = {
     zmq.REQ: 'REQ',
     zmq.REP: 'REP',
@@ -66,32 +60,6 @@ ZMQChannel.__new__ = partial(
     # This must be set on the next pipeline stage after drained_by
     drains=None,
 )
-
-
-ZMQLogMessage = namedtuple(
-    'ZMQLogMessage',
-    ['logger_name', 'hostname', 'logger_type', 'serialized_record',
-     'version', 'digest', 'iv', 'tag', 'serialization_format']
-)
-
-
-DEFAULT_ITERATIONS = 100000
-DEFAULT_IV_BITS = 96
-
-
-@six.add_metaclass(ABCMeta)
-class LogMessageHandler(object):
-
-    @abstractmethod
-    def handle(self, msg):
-        return msg
-
-    @classmethod
-    def __subclasshook__(cls, C):
-        if cls is LogMessageHandler:
-            if any("handle" in B.__dict__ for B in C.__mro__):
-                return True
-        return NotImplemented
 
 
 # Unfortunately, RawConfigParser forces all option keys to lower-case
