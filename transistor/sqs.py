@@ -147,7 +147,7 @@ class AsyncSQSClient(object):
             for entry in req_entries[:self.max_messages]:
                 assert isinstance(entry, nt_class)
                 # botocore expects dictionaries
-                entries.append(vars(entry))
+                entries.append(entry._asdict())
             api_params['Entries'] = entries
             try:
                 response = yield self._operate(op_name,
@@ -433,7 +433,7 @@ class AsyncSQSClient(object):
         assert isinstance(req_entry, SendMessageRequestEntry)
         # botocore expects dictionaries
         api_params = dict(
-            vars(req_entry),
+            req_entry._asdict(),
             QueueUrl=self.queue_url,
         )
         api_params.pop('Id', None)

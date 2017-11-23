@@ -339,7 +339,7 @@ class Actuator(object):
         else:
             socket_type = kwargs['default_socket_type']
         channel = ZMQChannel(**dict(
-            vars(channel),
+            channel._asdict(),
             bind=bind,
             endpoint=endpoint,
             socket_type=getattr(zmq, socket_type.upper()),
